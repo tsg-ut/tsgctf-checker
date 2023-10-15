@@ -1,0 +1,10 @@
+#!/bin/bash
+
+result=$(gofmt -d .)
+
+if [ -n "$result" ]; then
+  echo "$result"
+  exit 1
+fi
+
+exit 0

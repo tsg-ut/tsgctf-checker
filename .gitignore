@@ -1,0 +1,15 @@
+# bins
+bin
+
+# by-products of supervisord
+*.log
+*.pid
+
+# logs
+logs
+
+# actual files
+checker.config.json
+supervisord.conf
+.env
+

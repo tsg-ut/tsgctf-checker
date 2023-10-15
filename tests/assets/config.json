@@ -1,0 +1,5 @@
+{
+  "parallel": 10,
+  "challs_dir": "tests/assets/challs",
+  "skip_non_exist": true
+}
