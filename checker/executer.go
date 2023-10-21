@@ -122,7 +122,9 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResult, killer_chan <-cha
 		// check if process is running
 		// kill process
 		if err := cmd.Process.Kill(); err != nil {
-			e.logger.Errorf("[%s] Failed to kill process: %v", chall.Name, err)
+			if err.Error() != "os: process already finished" {
+				e.logger.Errorf("[%s] Failed to kill process: %v", chall.Name, err)
+			}
 		}
 	}
 
@@ -135,10 +137,9 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResult, killer_chan <-cha
 		res_chan <- ResultTestInterrupted
 		break
 	// timeout
-	case _, ok := <-killer_chan:
-		if !ok {
-			cleanup_container()
-		}
+	case <-killer_chan:
+		cleanup_container()
+		e.logger.Infof("[%s] Test timed out.", chall.Name)
 		res_chan <- ResultTimeout
 		break
 	// test finished
