@@ -10,6 +10,9 @@ type CheckerConfig struct {
 	ChallsDir    string `json:"challs_dir"`
 	Retries      uint   `json:"retries"`
 	SkipNonExist bool   `json:"skip_non_exist"`
+	SlackToken   string `json:"slack_token"`
+	SlackChannel string `json:"slack_channel"`
+	NotifySlack  bool
 }
 
 func ReadConf(config_path string) (CheckerConfig, error) {

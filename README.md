@@ -22,6 +22,8 @@ Create configuration JSON file which defines the following variables:
 | `parallel` | int | The number of concurrent test process. |
 | `challs_dir` | string | The path to the directory where challenges are placed. |
 | `skip_non_exist` | string | Skip challenges who don't have `info.json`. |
+| `slack_token` | string (optional) | Slack Bot User OAuth Token. |
+| `slack_channel` | string (optional) | Slack channel ID including `#`. |
 
 You can check [the example configuration file](./tests/assets/config.json).
 
@@ -29,12 +31,11 @@ You can check [the example configuration file](./tests/assets/config.json).
 
 | ENV | Description |
 |---|---|
-| `DBUSER` | Username of MySQL. |
-| `DBPASS` | Password of user `DBUSER` |
-| `DBHOST` | Host name of MySQL. |
-| `DBNAME` | Database name of MySQL. |
-| `DBNAME` | Database name of MySQL. |
-| `BADGE_PORT` | Port number of badge server. Default to `8080` |
+| `DBUSER` | Username of MySQL. (checker/badge) |
+| `DBPASS` | Password of user `DBUSER`. (checker/badge) |
+| `DBHOST` | Host name of MySQL. (checker/badge) |
+| `DBNAME` | Database name of MySQL. (checker/badge) |
+| `BADGE_PORT` | Port number of badge server. Default to `8080`. (badge) |
 
 ### Run and records tests
 
@@ -53,6 +54,11 @@ make cmd
 # or
 ./bin/cmd/badge --port=<port number>
 ```
+
+## 📢 Slack Notification
+
+If your run `checker` with `--notify-slack` option,
+failed tests would be notified to Slack.
 
 ## 🇯🇵 Challenge Requirement
 

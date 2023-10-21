@@ -64,6 +64,8 @@ func run_test(executer Executer, ch chan<- asyncTestResult) {
 
 // Run all tests using a given configuration, and record the results.
 func RunRecordTests(logger *zap.SugaredLogger, conf CheckerConfig, db *sqlx.DB) error {
+	slack_notifier := NewSlackNotifier(conf.SlackToken, conf.SlackChannel, logger)
+
 	if db == nil {
 		logger.Error("DB is nil")
 		return nil
@@ -126,6 +128,10 @@ func RunRecordTests(logger *zap.SugaredLogger, conf CheckerConfig, db *sqlx.DB) 
 			logger.Errorw("Failed to record result", "error", err)
 			close(result_chans)
 			return err
+		}
+
+		if conf.NotifySlack && result.result != ResultSuccess {
+			slack_notifier.NotifyError(result.executer.chall, result.result)
 		}
 
 		if num_running == 0 && len(executers_wait_queue) == 0 {
