@@ -12,7 +12,7 @@ import (
 type Challenge struct {
 	Name      string  `json:"name"`
 	Timeout   float64 `json:"timeout"`
-	Asignee   string  `json:"asignee"`
+	Assignee  string  `json:"assignee"`
 	SolverDir string
 }
 

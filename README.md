@@ -85,6 +85,7 @@ challs_dir
 |---|---|---|
 | `name` | string | Unique name of the challenge. Numbers, alphabets, `-`, `_`, and space are allowed. |
 | `timeout` | int | Timeout in seconds including the time to build a testing container. |
+| `assignee` | string | Slack User ID of the challenge author. Mentioned to on test failure. |
 
 ## 😈 Daemonization
 
