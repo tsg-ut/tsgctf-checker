@@ -6,14 +6,16 @@ import (
 )
 
 type CheckerConfig struct {
-	ParallelNum  uint   `json:"parallel"`
-	ChallsDir    string `json:"challs_dir"`
-	HaveGenreDir bool   `json:"have_genre_dir"`
-	Retries      uint   `json:"retries"`
-	SkipNonExist bool   `json:"skip_non_exist"`
-	SlackToken   string `json:"slack_token"`
-	SlackChannel string `json:"slack_channel"`
-	NotifySlack  bool
+	ParallelNum    uint   `json:"parallel"`
+	ChallsDir      string `json:"challs_dir"`
+	HaveGenreDir   bool   `json:"have_genre_dir"`
+	TargetsFile    string `json:"targets_file"`
+	Retries        uint   `json:"retries"`
+	SkipNonExist   bool   `json:"skip_non_exist"`
+	ExtraDockerArg string
+	SlackToken     string `json:"slack_token"`
+	SlackChannel   string `json:"slack_channel"`
+	NotifySlack    bool
 }
 
 func ReadConf(config_path string) (CheckerConfig, error) {

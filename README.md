@@ -22,11 +22,24 @@ Create configuration JSON file which defines the following variables:
 | `parallel` | int | The number of concurrent test process. |
 | `challs_dir` | string | The path to the directory where challenges are placed. |
 | `have_genre_dir` | bool | If `false`, directories under `challs_dir` are treated as challenge dir. If `true`, directores under `challs_dir` are treated as genre dir and their sub directories are treated as challenge dir. |
+| `targets_file` | string | The path to the file which lists host/port of challenges. |
 | `skip_non_exist` | string | Skip challenges who don't have `info.json`. |
 | `slack_token` | string (optional) | Slack Bot User OAuth Token. |
 | `slack_channel` | string (optional) | Slack channel ID including `#`. |
 
 You can check [the example configuration file](./tests/assets/config.json).
+
+### Create Targets File
+
+Create CSV file which lists host/port of challenges.
+
+- Each row of the file must have three fields:
+  - Challenge ID (same as `info.json`'s `name` field)
+  - Host name
+  - Port
+- The file must NOT have header row.
+
+Specify the path to this file to `targets_file` field of the configuration file.
 
 ### Setup Environment Variables
 
@@ -95,6 +108,7 @@ A directory specified by `challs_dir` looks like the following:
 
 - Each challenge must have `info.json` file.
 - Each challenge must have `Dockerfile`.
+- Host and port of each challenge are passed to the solver container as 1st/2nd argument.
 
 `info.json` must have the following keys:
 
@@ -123,3 +137,7 @@ go test -v <package dir> -run <test name>
 # Format
 make fmt
 ```
+
+### Notes
+
+- If you want to run example challenge and solver on the same local machine, you can pass `--network="host"` option to `/bin/cmd/checker` to make container use host network.

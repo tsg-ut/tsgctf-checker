@@ -1,9 +1,12 @@
 package checker
 
 import (
+	"encoding/csv"
+	"fmt"
 	"math"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -60,7 +63,7 @@ type asyncTestResult struct {
 }
 
 // Run a test with timeout.
-func run_test(executer Executer, ch chan<- asyncTestResult) {
+func run_test(executer Executer, ch chan<- asyncTestResult, conf CheckerConfig) {
 	timeout := executer.chall.Timeout
 	if timeout < 0 {
 		timeout = math.MaxFloat64
@@ -68,7 +71,7 @@ func run_test(executer Executer, ch chan<- asyncTestResult) {
 
 	res_chan := make(chan TestResult)
 	killer_chan := make(chan bool)
-	go executer.ExecuteDockerTest(res_chan, killer_chan)
+	go executer.ExecuteDockerTest(res_chan, killer_chan, conf)
 
 	res := ResultRunning
 
@@ -88,6 +91,40 @@ func run_test(executer Executer, ch chan<- asyncTestResult) {
 	}
 }
 
+func parseTargets(logger *zap.SugaredLogger, path string) ([]Target, error) {
+	targets := make([]Target, 0)
+	targets_file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer targets_file.Close()
+
+	reader := csv.NewReader(targets_file)
+	reader.Comma = ','
+	reader.Comment = '#'
+	reader.FieldsPerRecord = 3
+	reader.TrimLeadingSpace = true
+
+	rows, err := reader.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, row := range rows {
+		port, err := strconv.Atoi(row[2])
+		if err != nil {
+			return nil, err
+		}
+		targets = append(targets, Target{
+			ChallengeName: row[0],
+			Host:          row[1],
+			Port:          port,
+		})
+	}
+
+	return targets, nil
+}
+
 // Run all tests using a given configuration, and record the results.
 func RunRecordTests(logger *zap.SugaredLogger, conf CheckerConfig, db *sqlx.DB) error {
 	slack_notifier := NewSlackNotifier(conf.SlackToken, conf.SlackChannel, logger)
@@ -95,6 +132,13 @@ func RunRecordTests(logger *zap.SugaredLogger, conf CheckerConfig, db *sqlx.DB) 
 	if db == nil {
 		logger.Error("DB is nil")
 		return nil
+	}
+
+	// read targets
+	targets, err := parseTargets(logger, conf.TargetsFile)
+	if err != nil {
+		logger.Errorw(fmt.Sprintf("Failed to parse targets: %s", conf.TargetsFile), "error", err)
+		return err
 	}
 
 	// enumerate challenges
@@ -111,7 +155,7 @@ func RunRecordTests(logger *zap.SugaredLogger, conf CheckerConfig, db *sqlx.DB) 
 
 	challs := make([]Challenge, 0)
 	for _, path := range chall_pathes {
-		chall, err := ParseChallenge(path)
+		chall, err := ParseChallenge(path, targets)
 		if err != nil {
 			if conf.SkipNonExist {
 				continue
@@ -141,7 +185,7 @@ func RunRecordTests(logger *zap.SugaredLogger, conf CheckerConfig, db *sqlx.DB) 
 	for conf.ParallelNum > uint(num_running) && len(executers_wait_queue) > 0 {
 		executer := executers_wait_queue[0]
 		executers_wait_queue = executers_wait_queue[1:]
-		go run_test(executer, result_chans)
+		go run_test(executer, result_chans, conf)
 		num_running++
 	}
 
@@ -152,7 +196,7 @@ func RunRecordTests(logger *zap.SugaredLogger, conf CheckerConfig, db *sqlx.DB) 
 		for conf.ParallelNum > uint(num_running) && len(executers_wait_queue) > 0 {
 			executer := executers_wait_queue[0]
 			executers_wait_queue = executers_wait_queue[1:]
-			go run_test(executer, result_chans)
+			go run_test(executer, result_chans, conf)
 			num_running++
 		}
 

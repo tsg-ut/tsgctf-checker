@@ -1,5 +1,6 @@
 {
   "parallel": 10,
   "challs_dir": "tests/assets/challs",
+  "targets_file": "tests/assets/targets.csv",
   "skip_non_exist": true
 }

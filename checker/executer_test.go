@@ -84,9 +84,27 @@ func TestExecuter_ExecuteDockerTest(t *testing.T) {
 		},
 	}
 
+	targets := []Target{
+		{
+			ChallengeName: "just-success",
+			Host:          "localhost",
+			Port:          3306,
+		},
+		{
+			ChallengeName: "just-fail",
+			Host:          "localhost",
+			Port:          3306,
+		},
+		{
+			ChallengeName: "just-success-long",
+			Host:          "localhost",
+			Port:          3306,
+		},
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			chall, err := ParseChallenge(tt.fields.challenge_dir)
+			chall, err := ParseChallenge(tt.fields.challenge_dir, targets)
 			if err != nil {
 				t.Errorf("Failed to parse challenge: %v", err)
 			}
@@ -95,7 +113,7 @@ func TestExecuter_ExecuteDockerTest(t *testing.T) {
 				chall:         chall,
 				logger:        logger,
 			}
-			go e.ExecuteDockerTest(tt.args.res_chan, tt.args.killer_chan)
+			go e.ExecuteDockerTest(tt.args.res_chan, tt.args.killer_chan, CheckerConfig{})
 
 			var res TestResult
 			if tt.args.should_kill {

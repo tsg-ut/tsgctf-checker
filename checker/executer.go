@@ -84,7 +84,7 @@ func (e *Executer) check_before_execution() error {
 // This function is notified if SIGTERM or SIGINT is sent to the process,
 // and it cleans up subprocess and returns ResultTestInterrupted.
 // Note that it sends ResultRunning to res_chan when it starts executing the test.
-func (e *Executer) ExecuteDockerTest(res_chan chan TestResult, killer_chan <-chan bool) {
+func (e *Executer) ExecuteDockerTest(res_chan chan TestResult, killer_chan <-chan bool, conf CheckerConfig) {
 	if err := e.check_before_execution(); err != nil {
 		e.logger.Errorf("[%s] Failed to execute test: \n%w", e.chall.Name, err)
 		res_chan <- ResultExecutionFailure
@@ -95,7 +95,7 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResult, killer_chan <-cha
 	chall := e.chall
 	container_name := fmt.Sprintf("container_solver_%s", chall.Name)
 	image_name := fmt.Sprintf("solver_%s", chall.Name)
-	cmd := exec.Command("bash", "-c", fmt.Sprintf("docker run --name %s --rm $(docker build -qt solver_%s %s)", container_name, image_name, chall.SolverDir))
+	cmd := exec.Command("bash", "-c", fmt.Sprintf("docker run %s --name container_%s --rm $(docker build -qt %s %s) %s %d", conf.ExtraDockerArg, container_name, image_name, chall.SolverDir, chall.target.Host, chall.target.Port))
 
 	// termination signal hook
 	signal_chan := make(chan os.Signal, 1)

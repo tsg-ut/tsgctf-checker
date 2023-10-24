@@ -53,9 +53,27 @@ func TestChallenge_ParseChallenge(t *testing.T) {
 		},
 	}
 
+	targets := []Target{
+		{
+			ChallengeName: "just-success",
+			Host:          "localhost",
+			Port:          3306,
+		},
+		{
+			ChallengeName: "just-fail",
+			Host:          "localhost",
+			Port:          3306,
+		},
+		{
+			ChallengeName: "just-success-long",
+			Host:          "localhost",
+			Port:          3306,
+		},
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseChallenge(tt.args.path)
+			got, err := ParseChallenge(tt.args.path, targets)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseChallenge() error = %v, wantErr %v", err, tt.wantErr)
 				return

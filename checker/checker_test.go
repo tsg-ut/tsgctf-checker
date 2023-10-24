@@ -22,6 +22,7 @@ func TestChecker_RunRecordTests(t *testing.T) {
 	conf := CheckerConfig{
 		ParallelNum:  10,
 		ChallsDir:    "tests/assets/challs",
+		TargetsFile:  "tests/assets/targets.csv",
 		HaveGenreDir: false,
 		Retries:      3,
 	}

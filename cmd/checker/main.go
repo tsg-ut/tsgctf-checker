@@ -18,6 +18,8 @@ func create_conf(logger *zap.SugaredLogger) (checker.CheckerConfig, error) {
 	challs_dir := flag.String("challs", "challs", "Challenges directory.")
 	parallel := flag.Uint("parallel", 1, "Number of parallel tests.")
 	skip_non_exist := flag.Bool("skip-non-exist", false, "Skip challenges who don't have info.json.")
+	extra_docker_arg := flag.String("extra-docker-arg", "", "Extra docker arguments passed to `run` command.")
+	targets_file := flag.String("targets", "targets.json", "Targets file path.")
 	notify_slack := flag.Bool("notify-slack", false, "Notify slack when a test fails.")
 	flag.Parse()
 
@@ -41,11 +43,19 @@ func create_conf(logger *zap.SugaredLogger) (checker.CheckerConfig, error) {
 			break
 		case "skip-non-exist":
 			conf.SkipNonExist = *skip_non_exist
+			break
+		case "targets":
+			conf.TargetsFile = *targets_file
+			break
 		case "notify-slack":
 			if (conf.SlackToken == "" || conf.SlackChannel == "") && *notify_slack {
 				logger.Fatal("Slack notification is enabled, but slack_token or slack_channel is not set in config.")
 			}
 			conf.NotifySlack = *notify_slack
+			break
+		case "extra-docker-arg":
+			conf.ExtraDockerArg = *extra_docker_arg
+			break
 		case "config":
 			break
 		default:
