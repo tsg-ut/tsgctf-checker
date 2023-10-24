@@ -8,6 +8,7 @@ import (
 type CheckerConfig struct {
 	ParallelNum  uint   `json:"parallel"`
 	ChallsDir    string `json:"challs_dir"`
+	HaveGenreDir bool   `json:"have_genre_dir"`
 	Retries      uint   `json:"retries"`
 	SkipNonExist bool   `json:"skip_non_exist"`
 	SlackToken   string `json:"slack_token"`

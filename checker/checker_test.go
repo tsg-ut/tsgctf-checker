@@ -20,9 +20,10 @@ func TestChecker_RunRecordTests(t *testing.T) {
 	defer os.Chdir(cwd)
 
 	conf := CheckerConfig{
-		ParallelNum: 10,
-		ChallsDir:   "tests/assets/challs",
-		Retries:     3,
+		ParallelNum:  10,
+		ChallsDir:    "tests/assets/challs",
+		HaveGenreDir: false,
+		Retries:      3,
 	}
 
 	// run tests

@@ -21,6 +21,7 @@ Create configuration JSON file which defines the following variables:
 |---|---|---|
 | `parallel` | int | The number of concurrent test process. |
 | `challs_dir` | string | The path to the directory where challenges are placed. |
+| `have_genre_dir` | bool | If `false`, directories under `challs_dir` are treated as challenge dir. If `true`, directores under `challs_dir` are treated as genre dir and their sub directories are treated as challenge dir. |
 | `skip_non_exist` | string | Skip challenges who don't have `info.json`. |
 | `slack_token` | string (optional) | Slack Bot User OAuth Token. |
 | `slack_channel` | string (optional) | Slack channel ID including `#`. |
@@ -65,7 +66,8 @@ failed tests would be notified to Slack.
 A directory specified by `challs_dir` looks like the following:
 
 ```bash
-challs_dir
+# When `have_genre_dir` is `false`
+`challs_dir`
 ├── chall1
 │   └── solver
 │       ├── Dockerfile
@@ -74,6 +76,21 @@ challs_dir
     └── solver
         ├── Dockerfile
         └── info.json
+
+# When `have_genre_dir` is `true`
+`challs_dir`
+├── pwn
+│   ├── chall1
+│   │   └── solver
+│   │       ├── Dockerfile
+│   │       └── info.json
+│   └── chall2
+│           ├── Dockerfile
+│           └── info.json
+└── web
+    └── chall3
+            ├── Dockerfile
+            └── info.json
 ```
 
 - Each challenge must have `info.json` file.

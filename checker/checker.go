@@ -10,22 +10,48 @@ import (
 	"go.uber.org/zap"
 )
 
-// Enumerate directories under challs_dir.
-func EnumerateChallenges(challs_dir string) ([]string, error) {
+func enumerateGenreChallenges(genre_dir string) ([]string, error) {
 	pathes := make([]string, 0)
-	files, err := os.ReadDir(challs_dir)
+	files, err := os.ReadDir(genre_dir)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, f := range files {
 		if f.IsDir() {
-			path, _ := filepath.Abs(filepath.Join(challs_dir, f.Name()))
+			_, err := os.Stat(filepath.Join(genre_dir, f.Name(), "solver/info.json"))
+			if err != nil {
+				continue
+			}
+			path, _ := filepath.Abs(filepath.Join(genre_dir, f.Name()))
 			pathes = append(pathes, path)
 		}
 	}
 
 	return pathes, nil
+}
+
+// Enumerate directories under challs_dir.
+func EnumerateChallenges(challs_dir string, have_genre_dir bool) ([]string, error) {
+	if have_genre_dir {
+		pathes := make([]string, 0)
+		genre_dirs, err := os.ReadDir(challs_dir)
+		if err != nil {
+			return nil, err
+		}
+		for _, genre_dir := range genre_dirs {
+			if genre_dir.IsDir() {
+				genre_challs, err := enumerateGenreChallenges(filepath.Join(challs_dir, genre_dir.Name()))
+				if err != nil {
+					return nil, err
+				}
+				pathes = append(pathes, genre_challs...)
+			}
+		}
+		return pathes, nil
+	} else {
+		return enumerateGenreChallenges(challs_dir)
+	}
 }
 
 type asyncTestResult struct {
@@ -72,11 +98,17 @@ func RunRecordTests(logger *zap.SugaredLogger, conf CheckerConfig, db *sqlx.DB) 
 	}
 
 	// enumerate challenges
-	chall_pathes, err := EnumerateChallenges(conf.ChallsDir)
+	chall_pathes, err := EnumerateChallenges(conf.ChallsDir, conf.HaveGenreDir)
 	if err != nil {
 		logger.Errorw("Failed to enumerate challenges", "error", err)
 		return err
 	}
+	logger.Infof("Found %d challenges", len(chall_pathes))
+	if len(chall_pathes) == 0 {
+		logger.Info("No challenges found")
+		return nil
+	}
+
 	challs := make([]Challenge, 0)
 	for _, path := range chall_pathes {
 		chall, err := ParseChallenge(path)

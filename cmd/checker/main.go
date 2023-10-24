@@ -71,7 +71,6 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	logger.Infof("Configuration: %+v", conf)
 
 	var db *sqlx.DB
 	db, err = checker.Connect(os.Getenv("DBUSER"), os.Getenv("DBPASS"), os.Getenv("DBHOST"), os.Getenv("DBNAME"))
