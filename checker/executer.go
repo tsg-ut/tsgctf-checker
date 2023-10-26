@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 
 	"go.uber.org/zap"
@@ -93,8 +94,8 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResult, killer_chan <-cha
 
 	// prepare command
 	chall := e.chall
-	container_name := fmt.Sprintf("container_solver_%s", chall.Name)
-	image_name := fmt.Sprintf("solver_%s", chall.Name)
+	container_name := fmt.Sprintf("container_solver_%s", strings.ToLower(chall.Name))
+	image_name := fmt.Sprintf("solver_%s", strings.ToLower(chall.Name))
 	cmd := exec.Command("bash", "-c", fmt.Sprintf("docker run %s --name container_%s --rm $(docker build -qt %s %s) %s %d", conf.ExtraDockerArg, container_name, image_name, chall.SolverDir, chall.target.Host, chall.target.Port))
 
 	// termination signal hook
