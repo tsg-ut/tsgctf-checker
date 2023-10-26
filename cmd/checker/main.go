@@ -21,6 +21,7 @@ func create_conf(logger *zap.SugaredLogger) (checker.CheckerConfig, error) {
 	extra_docker_arg := flag.String("extra-docker-arg", "", "Extra docker arguments passed to `run` command.")
 	targets_file := flag.String("targets", "targets.json", "Targets file path.")
 	notify_slack := flag.Bool("notify-slack", false, "Notify slack when a test fails.")
+	dryrun := flag.Bool("dryrun", false, "Dryrun mode. (Don't update database.)")
 	flag.Parse()
 
 	conf, err := checker.ReadConf(*conffile)
@@ -56,6 +57,9 @@ func create_conf(logger *zap.SugaredLogger) (checker.CheckerConfig, error) {
 		case "extra-docker-arg":
 			conf.ExtraDockerArg = *extra_docker_arg
 			break
+		case "dryrun":
+			conf.Dryrun = *dryrun
+			break
 		case "config":
 			break
 		default:
@@ -83,9 +87,13 @@ func main() {
 	}
 
 	var db *sqlx.DB
-	db, err = checker.Connect(os.Getenv("DBUSER"), os.Getenv("DBPASS"), os.Getenv("DBHOST"), os.Getenv("DBNAME"))
-	if err != nil {
-		logger.Fatal(err)
+	if conf.Dryrun == false {
+		db, err = checker.Connect(os.Getenv("DBUSER"), os.Getenv("DBPASS"), os.Getenv("DBHOST"), os.Getenv("DBNAME"))
+		if err != nil {
+			logger.Fatal(err)
+		}
+	} else {
+		db = nil
 	}
 
 	if err := checker.RunRecordTests(logger, conf, db); err != nil {
