@@ -17,6 +17,7 @@ type CheckerConfig struct {
 	SlackChannel   string `json:"slack_channel"`
 	NotifySlack    bool
 	Dryrun         bool
+	Vervose        bool
 }
 
 func ReadConf(config_path string) (CheckerConfig, error) {

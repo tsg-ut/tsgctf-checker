@@ -3,6 +3,7 @@ package checker
 // This file implements the actual execution of health checks.
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -98,6 +99,9 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResult, killer_chan <-cha
 	image_name := fmt.Sprintf("solver_%s", strings.ToLower(chall.Name))
 	cmd := exec.Command("bash", "-c", fmt.Sprintf("docker run %s --name container_%s --rm $(docker build -qt %s %s) %s %d", conf.ExtraDockerArg, container_name, image_name, chall.SolverDir, chall.target.Host, chall.target.Port))
 
+	var errbuf bytes.Buffer
+	cmd.Stderr = &errbuf
+
 	// termination signal hook
 	signal_chan := make(chan os.Signal, 1)
 	signal.Notify(signal_chan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
@@ -148,6 +152,9 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResult, killer_chan <-cha
 		if err != nil {
 			if exiterr, ok := err.(*exec.ExitError); ok {
 				e.logger.Infof("[%s] Test failed with status %d", chall.Name, exiterr.ExitCode())
+				if conf.Vervose {
+					e.logger.Infof("[%s] stderr: %s", chall.Name, errbuf.String())
+				}
 				res_chan <- ResultFailure
 			}
 		} else {

@@ -22,6 +22,7 @@ func create_conf(logger *zap.SugaredLogger) (checker.CheckerConfig, error) {
 	targets_file := flag.String("targets", "targets.json", "Targets file path.")
 	notify_slack := flag.Bool("notify-slack", false, "Notify slack when a test fails.")
 	dryrun := flag.Bool("dryrun", false, "Dryrun mode. (Don't update database.)")
+	verbose := flag.Bool("verbose", false, "Verbose logging mode.")
 	flag.Parse()
 
 	conf, err := checker.ReadConf(*conffile)
@@ -59,6 +60,9 @@ func create_conf(logger *zap.SugaredLogger) (checker.CheckerConfig, error) {
 			break
 		case "dryrun":
 			conf.Dryrun = *dryrun
+			break
+		case "verbose":
+			conf.Vervose = *verbose
 			break
 		case "config":
 			break
