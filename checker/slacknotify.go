@@ -21,13 +21,14 @@ func NewSlackNotifier(token string, channel string, logger *zap.SugaredLogger) *
 	}
 }
 
-func (s *SlackNotifier) NotifyError(chall Challenge, result TestResult) error {
+func (s *SlackNotifier) NotifyError(chall Challenge, result TestResult, errlog string) error {
 	args := slack.PostMessageParameters{
 		Username:  "TSGCTF Status",
 		IconEmoji: ":fire:",
 		Markdown:  true,
 	}
-	msg := fmt.Sprintf("Status check failed for `%s`\n"+"Result: `%s`\n"+"Asignee: <@%s>", chall.Name, result.ToMessage(), chall.Assignee)
+	errlog = fmt.Sprintf("```\n%s\n```", errlog)
+	msg := fmt.Sprintf("Status check failed for `%s`\n"+"Result: `%s`\n"+"Asignee: <@%s>\n%s", chall.Name, result.ToMessage(), chall.Assignee, errlog)
 
 	_, _, err := s.api.PostMessage(s.channel, slack.MsgOptionText(msg, false), slack.MsgOptionPostMessageParameters(args))
 	if err != nil {

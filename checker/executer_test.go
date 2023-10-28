@@ -14,7 +14,7 @@ func TestExecuter_ExecuteDockerTest(t *testing.T) {
 		challenge_dir string
 	}
 	type args struct {
-		res_chan        chan TestResult
+		res_chan        chan TestResultMessage
 		killer_chan     chan bool
 		expected_result TestResult
 		// Send kill signal using channel
@@ -36,7 +36,7 @@ func TestExecuter_ExecuteDockerTest(t *testing.T) {
 				challenge_dir: "tests/assets/challs/just-success",
 			},
 			args: args{
-				res_chan:                make(chan TestResult),
+				res_chan:                make(chan TestResultMessage),
 				killer_chan:             make(chan bool),
 				expected_result:         ResultSuccess,
 				should_kill:             false,
@@ -49,7 +49,7 @@ func TestExecuter_ExecuteDockerTest(t *testing.T) {
 				challenge_dir: "tests/assets/challs/just-fail",
 			},
 			args: args{
-				res_chan:                make(chan TestResult),
+				res_chan:                make(chan TestResultMessage),
 				killer_chan:             make(chan bool),
 				expected_result:         ResultFailure,
 				should_kill:             false,
@@ -62,7 +62,7 @@ func TestExecuter_ExecuteDockerTest(t *testing.T) {
 				challenge_dir: "tests/assets/challs/just-success-long",
 			},
 			args: args{
-				res_chan:                make(chan TestResult),
+				res_chan:                make(chan TestResultMessage),
 				killer_chan:             make(chan bool),
 				expected_result:         ResultTimeout,
 				should_kill:             true,
@@ -75,7 +75,7 @@ func TestExecuter_ExecuteDockerTest(t *testing.T) {
 				challenge_dir: "tests/assets/challs/just-success-long",
 			},
 			args: args{
-				res_chan:                make(chan TestResult),
+				res_chan:                make(chan TestResultMessage),
 				killer_chan:             make(chan bool),
 				expected_result:         ResultTestInterrupted,
 				should_kill:             false,
@@ -115,7 +115,7 @@ func TestExecuter_ExecuteDockerTest(t *testing.T) {
 			}
 			go e.ExecuteDockerTest(tt.args.res_chan, tt.args.killer_chan, CheckerConfig{})
 
-			var res TestResult
+			var res TestResultMessage
 			if tt.args.should_kill {
 				close(tt.args.killer_chan)
 			}
@@ -126,12 +126,12 @@ func TestExecuter_ExecuteDockerTest(t *testing.T) {
 
 			for {
 				res = <-tt.args.res_chan
-				if res != ResultRunning {
+				if res.Result != ResultRunning {
 					break
 				}
 			}
-			if res != tt.args.expected_result {
-				t.Errorf("Expected result %d, got %d", tt.args.expected_result, res)
+			if res.Result != tt.args.expected_result {
+				t.Errorf("Expected result %d, got %d", tt.args.expected_result, res.Result)
 			}
 		})
 	}

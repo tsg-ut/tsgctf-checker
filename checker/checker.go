@@ -59,7 +59,7 @@ func EnumerateChallenges(challs_dir string, have_genre_dir bool) ([]string, erro
 
 type asyncTestResult struct {
 	executer Executer
-	result   TestResult
+	result   TestResultMessage
 }
 
 // Run a test with timeout.
@@ -69,13 +69,13 @@ func run_test(executer Executer, ch chan<- asyncTestResult, conf CheckerConfig) 
 		timeout = math.MaxFloat64
 	}
 
-	res_chan := make(chan TestResult)
+	res_chan := make(chan TestResultMessage)
 	killer_chan := make(chan bool)
 	go executer.ExecuteDockerTest(res_chan, killer_chan, conf)
 
-	res := ResultRunning
+	res := TestResultMessage{ResultRunning, ""}
 
-	for res == ResultRunning {
+	for res.Result == ResultRunning {
 		select {
 		case result := <-res_chan:
 			res = result
@@ -201,14 +201,14 @@ func RunRecordTests(logger *zap.SugaredLogger, conf CheckerConfig, db *sqlx.DB) 
 		}
 
 		if conf.Dryrun == false {
-			if err := RecordResult(db, result.executer.chall, result.result); err != nil {
+			if err := RecordResult(db, result.executer.chall, result.result.Result); err != nil {
 				logger.Errorw("Failed to record result", "error", err)
 				close(result_chans)
 				return err
 			}
 
-			if conf.NotifySlack && result.result != ResultSuccess {
-				slack_notifier.NotifyError(result.executer.chall, result.result)
+			if conf.NotifySlack && result.result.Result != ResultSuccess {
+				slack_notifier.NotifyError(result.executer.chall, result.result.Result, result.result.Errlog)
 			}
 		}
 
