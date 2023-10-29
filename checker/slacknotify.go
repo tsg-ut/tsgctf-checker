@@ -29,7 +29,7 @@ func (s *SlackNotifier) NotifyError(chall Challenge, result TestResult, stdout s
 	}
 	stdout = fmt.Sprintf("```\n%s\n```", stdout)
 	errlog = fmt.Sprintf("```\n%s\n```", errlog)
-	msg := fmt.Sprintf("Status check failed for `%s`\n"+"Result: `%s`\n"+"Asignee: <@%s>\nSTDOUT:\n%sSTDERR:\n%s", chall.Name, result.ToMessage(), chall.Assignee, stdout, errlog)
+	msg := fmt.Sprintf("Status check failed for `%s`\n"+"Result: `%s`\n"+"Asignee: <@%s>\nSTDOUT:\n%s\nSTDERR:\n%s\n", chall.Name, result.ToMessage(), chall.Assignee, stdout, errlog)
 
 	_, _, err := s.api.PostMessage(s.channel, slack.MsgOptionText(msg, false), slack.MsgOptionPostMessageParameters(args))
 	if err != nil {
