@@ -24,6 +24,7 @@ type Executer struct {
 
 type TestResultMessage struct {
 	Result TestResult
+	Stdout string
 	Errlog string
 }
 
@@ -105,7 +106,9 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResultMessage, killer_cha
 	cmd := exec.Command("bash", "-c", fmt.Sprintf("docker run %s --name container_%s --rm $(docker build -qt %s %s) %s %d", conf.ExtraDockerArg, container_name, image_name, chall.SolverDir, chall.target.Host, chall.target.Port))
 
 	var errbuf bytes.Buffer
+	var outbuf bytes.Buffer
 	cmd.Stderr = &errbuf
+	cmd.Stdout = &outbuf
 
 	// termination signal hook
 	signal_chan := make(chan os.Signal, 1)
@@ -115,10 +118,10 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResultMessage, killer_cha
 	res_chan_internal := make(chan error)
 	if err := cmd.Start(); err != nil {
 		e.logger.Warnf("[%s] Failed to start test: \n%w", chall.Name, err)
-		res_chan <- TestResultMessage{ResultFailure, err.Error()}
+		res_chan <- TestResultMessage{ResultFailure, outbuf.String(), err.Error()}
 		return
 	}
-	res_chan <- TestResultMessage{ResultRunning, ""}
+	res_chan <- TestResultMessage{ResultRunning, outbuf.String(), errbuf.String()}
 	e.logger.Infof("[%s] Test started as pid %d in %s.", chall.Name, cmd.Process.Pid, container_name)
 	go func() {
 		res_chan_internal <- cmd.Wait()
@@ -144,13 +147,13 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResultMessage, killer_cha
 	case <-signal_chan:
 		e.logger.Infof("[%s] Checker process interrupted, cleaning up docker container...", chall.Name)
 		cleanup_container()
-		res_chan <- TestResultMessage{ResultTestInterrupted, "Interrupted by signal."}
+		res_chan <- TestResultMessage{ResultTestInterrupted, "", "Interrupted by signal."}
 		break
 	// timeout
 	case <-killer_chan:
 		cleanup_container()
 		e.logger.Infof("[%s] Test timed out.", chall.Name)
-		res_chan <- TestResultMessage{ResultTimeout, "Timeout."}
+		res_chan <- TestResultMessage{ResultTimeout, "", "Timeout."}
 		break
 	// test finished
 	case err := <-res_chan_internal:
@@ -160,12 +163,12 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResultMessage, killer_cha
 				if conf.Vervose {
 					e.logger.Infof("[%s] stderr: %s", chall.Name, errbuf.String())
 				}
-				res_chan <- TestResultMessage{ResultFailure, errbuf.String()}
+				res_chan <- TestResultMessage{ResultFailure, outbuf.String(), errbuf.String()}
 			}
 		} else {
 			// test ends without any failure
 			e.logger.Infof("[%s] exits with status code 0.", chall.Name)
-			res_chan <- TestResultMessage{ResultSuccess, ""}
+			res_chan <- TestResultMessage{ResultSuccess, "", ""}
 		}
 		break
 	}

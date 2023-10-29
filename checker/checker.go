@@ -73,7 +73,7 @@ func run_test(executer Executer, ch chan<- asyncTestResult, conf CheckerConfig) 
 	killer_chan := make(chan bool)
 	go executer.ExecuteDockerTest(res_chan, killer_chan, conf)
 
-	res := TestResultMessage{ResultRunning, ""}
+	res := TestResultMessage{ResultRunning, "", ""}
 
 	for res.Result == ResultRunning {
 		select {
@@ -208,7 +208,7 @@ func RunRecordTests(logger *zap.SugaredLogger, conf CheckerConfig, db *sqlx.DB) 
 			}
 
 			if conf.NotifySlack && result.result.Result != ResultSuccess {
-				slack_notifier.NotifyError(result.executer.chall, result.result.Result, result.result.Errlog)
+				slack_notifier.NotifyError(result.executer.chall, result.result.Result, result.result.Stdout, result.result.Errlog)
 			}
 		}
 
