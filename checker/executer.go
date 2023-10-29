@@ -153,7 +153,7 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResultMessage, killer_cha
 	case <-killer_chan:
 		cleanup_container()
 		e.logger.Infof("[%s] Test timed out.", chall.Name)
-		res_chan <- TestResultMessage{ResultTimeout, "", "Timeout."}
+		res_chan <- TestResultMessage{ResultTimeout, outbuf.String(), errbuf.String()}
 		break
 	// test finished
 	case err := <-res_chan_internal:
