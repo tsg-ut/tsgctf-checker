@@ -103,7 +103,7 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResultMessage, killer_cha
 	chall := e.chall
 	container_name := fmt.Sprintf("container_solver_%s", strings.ToLower(chall.Name))
 	image_name := fmt.Sprintf("solver_%s", strings.ToLower(chall.Name))
-	cmd := exec.Command("bash", "-c", fmt.Sprintf("docker run %s --name container_%s --rm $(docker build -qt %s %s) %s %d", conf.ExtraDockerArg, container_name, image_name, chall.SolverDir, chall.target.Host, chall.target.Port))
+	cmd := exec.Command("bash", "-c", fmt.Sprintf("docker run %s --name %s --rm $(docker build -qt %s %s) %s %d", conf.ExtraDockerArg, container_name, image_name, chall.SolverDir, chall.target.Host, chall.target.Port))
 
 	var errbuf bytes.Buffer
 	var outbuf bytes.Buffer
@@ -128,16 +128,16 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResultMessage, killer_cha
 	}()
 
 	cleanup_container := func() {
-		// remove container
-		if err := exec.Command("docker", "rm", "-f", container_name).Run(); err != nil {
-			e.logger.Errorf("[%s] Failed to remove container(%s):\n%v", chall.Name, container_name, err)
-		}
 		// check if process is running
 		// kill process
-		if err := cmd.Process.Kill(); err != nil {
+		if err := cmd.Process.Signal(os.Interrupt); err != nil {
 			if err.Error() != "os: process already finished" {
 				e.logger.Errorf("[%s] Failed to kill process: %v", chall.Name, err)
 			}
+		}
+		// remove container
+		if err := exec.Command("docker", "stop", container_name).Run(); err != nil {
+			e.logger.Errorf("[%s] Failed to remove container (%s):\n%v", chall.Name, container_name, err)
 		}
 	}
 
@@ -151,8 +151,9 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResultMessage, killer_cha
 		break
 	// timeout
 	case <-killer_chan:
+		e.logger.Infof("[%s] Test timed out. Stopping container.", chall.Name)
 		cleanup_container()
-		e.logger.Infof("[%s] Test timed out.", chall.Name)
+		e.logger.Infof("[%s] Container stopped.", chall.Name)
 		res_chan <- TestResultMessage{ResultTimeout, outbuf.String(), errbuf.String()}
 		break
 	// test finished
