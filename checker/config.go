@@ -17,6 +17,7 @@ type CheckerConfig struct {
 	SlackChannel   string `json:"slack_channel"`
 	NotifySlack    bool
 	Dryrun         bool
+	TargetTests    string // comma separated list of tests to run
 	Vervose        bool
 }
 

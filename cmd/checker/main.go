@@ -18,10 +18,11 @@ func create_conf(logger *zap.SugaredLogger) (checker.CheckerConfig, error) {
 	challs_dir := flag.String("challs", "challs", "Challenges directory.")
 	parallel := flag.Uint("parallel", 1, "Number of parallel tests.")
 	skip_non_exist := flag.Bool("skip-non-exist", false, "Skip challenges who don't have info.json.")
-	extra_docker_arg := flag.String("extra-docker-arg", "", "Extra docker arguments passed to `run` command.")
+	extra_docker_arg := flag.String("extra-docker-arg", "", "Extra docker arguments passed to \"run\" command.")
 	targets_file := flag.String("targets", "targets.json", "Targets file path.")
 	notify_slack := flag.Bool("notify-slack", false, "Notify slack when a test fails.")
 	dryrun := flag.Bool("dryrun", false, "Dryrun mode. (Don't update database.)")
+	target_tests := flag.String("t", "", "Target tests to run.")
 	verbose := flag.Bool("verbose", false, "Verbose logging mode.")
 	flag.Parse()
 
@@ -63,6 +64,9 @@ func create_conf(logger *zap.SugaredLogger) (checker.CheckerConfig, error) {
 			break
 		case "verbose":
 			conf.Vervose = *verbose
+			break
+		case "t":
+			conf.TargetTests = *target_tests
 			break
 		case "config":
 			break

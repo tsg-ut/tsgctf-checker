@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -147,7 +148,6 @@ func RunRecordTests(logger *zap.SugaredLogger, conf CheckerConfig, db *sqlx.DB) 
 		logger.Errorw("Failed to enumerate challenges", "error", err)
 		return err
 	}
-	logger.Infof("Found %d challenges", len(chall_pathes))
 	if len(chall_pathes) == 0 {
 		logger.Info("No challenges found")
 		return nil
@@ -166,6 +166,20 @@ func RunRecordTests(logger *zap.SugaredLogger, conf CheckerConfig, db *sqlx.DB) 
 		}
 		challs = append(challs, chall)
 	}
+
+	if conf.TargetTests != "" {
+		target_tests := strings.Split(conf.TargetTests, ",")
+		challs_filtered := make([]Challenge, 0)
+		for _, chall := range challs {
+			for _, test := range target_tests {
+				if chall.Name == strings.Trim(test, " ") {
+					challs_filtered = append(challs_filtered, chall)
+				}
+			}
+		}
+		challs = challs_filtered
+	}
+	logger.Infof("Found %d challenges", len(challs))
 
 	executers_wait_queue := make([]Executer, 0)
 	num_running := 0
