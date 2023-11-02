@@ -154,6 +154,10 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResultMessage, killer_cha
 		e.logger.Infof("[%s] Test timed out. Stopping container.", chall.Name)
 		cleanup_container()
 		e.logger.Infof("[%s] Container stopped.", chall.Name)
+		if conf.Vervose {
+			e.logger.Infof("[%s] stdout: %s", chall.Name, outbuf.String())
+			e.logger.Infof("[%s] stderr: %s", chall.Name, errbuf.String())
+		}
 		res_chan <- TestResultMessage{ResultTimeout, outbuf.String(), errbuf.String()}
 		break
 	// test finished
@@ -162,6 +166,7 @@ func (e *Executer) ExecuteDockerTest(res_chan chan TestResultMessage, killer_cha
 			if exiterr, ok := err.(*exec.ExitError); ok {
 				e.logger.Infof("[%s] Test failed with status %d", chall.Name, exiterr.ExitCode())
 				if conf.Vervose {
+					e.logger.Infof("[%s] stdout: %s", chall.Name, outbuf.String())
 					e.logger.Infof("[%s] stderr: %s", chall.Name, errbuf.String())
 				}
 				res_chan <- TestResultMessage{ResultFailure, outbuf.String(), errbuf.String()}
