@@ -64,6 +64,13 @@ func main() {
 		c.String(http.StatusOK, "pong")
 	})
 
+	// pizza
+	server.GET("/badge/pizza", func(c *gin.Context) {
+		c.Header("Cache-Control", "max-age=60, public, immutable, must-revalidate")
+		c.Redirect(http.StatusFound, "https://img.shields.io/badge/pizza-I_want_it-green")
+		return
+	})
+
 	// badge EP
 	server.GET("/badge/:chall_name", func(c *gin.Context) {
 		chall_name := c.Params.ByName("chall_name")
