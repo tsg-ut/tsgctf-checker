@@ -8,7 +8,7 @@
 ### Setup MySQL
 
 ```bash
-sudo apt instlall mysql-server
+sudo apt install mysql-server
 sudo systemctl start mysql.service
 sudo mysql -e "source ./scripts/mysql/init.sql"
 ```
